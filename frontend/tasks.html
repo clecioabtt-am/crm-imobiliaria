@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-br"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tarefas - CRM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="container">
+  <div id="nav"></div>
+
+  <div class="card">
+    <div class="row">
+      <h2>Tarefas</h2>
+      <span class="small">CRUD básico</span>
+    </div>
+
+    <div class="card">
+      <h3>Novo</h3>
+      <div class="grid">
+
+      <div>
+        <label>Título</label>
+        <input class="input" id="title" type="text" placeholder="Ligar para lead"/>
+      </div>
+
+
+      <div>
+        <label>Deal ID (opcional)</label>
+        <input class="input" id="deal_id" type="number" placeholder=""/>
+      </div>
+
+
+      <div>
+        <label>Contact ID (opcional)</label>
+        <input class="input" id="contact_id" type="number" placeholder=""/>
+      </div>
+
+
+      <div>
+        <label>Assigned User ID (opcional)</label>
+        <input class="input" id="assigned_to_user_id" type="number" placeholder=""/>
+      </div>
+
+
+      <div>
+        <label>Status</label>
+        <input class="input" id="status" type="text" placeholder="Aberta"/>
+      </div>
+
+
+      <div>
+        <label>Due (ISO, opcional)</label>
+        <input class="input" id="due_at" type="text" placeholder="2026-01-14T10:00:00"/>
+      </div>
+
+      </div>
+      <div style="margin-top:12px" class="row">
+        <button class="btn" id="create">Salvar</button>
+        <span class="small" id="msg"></span>
+      </div>
+    </div>
+
+    <table class="table" id="tbl">
+      <thead><tr><th>ID</th><th>Resumo</th><th class="small">Ações</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+requireAuth();
+document.getElementById("nav").innerHTML = navHtml();
+
+async function load(){
+  const rows = await api("/api/tasks");
+  const tb = document.querySelector("#tbl tbody");
+  tb.innerHTML = "";
+  rows.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `${r.id}</td><td><b>${r.title}</b><div class="small">${r.status} • vence: ${r.due_at||"-"}</div></td><td>-</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+document.getElementById("create").onclick = async () => {
+  const msg = document.getElementById("msg");
+  msg.textContent = "Salvando...";
+  try {
+    const payload = ({
+      title: document.getElementById("title").value,
+      deal_id: document.getElementById("deal_id").value ? Number(document.getElementById("deal_id").value) : null,
+      contact_id: document.getElementById("contact_id").value ? Number(document.getElementById("contact_id").value) : null,
+      assigned_to_user_id: document.getElementById("assigned_to_user_id").value ? Number(document.getElementById("assigned_to_user_id").value) : null,
+      status: document.getElementById("status").value || "Aberta",
+      due_at: document.getElementById("due_at").value ? document.getElementById("due_at").value : null
+    });
+    await api("/api/tasks","POST", payload);
+    msg.textContent = "Salvo!";
+    await load();
+  } catch(e) {
+    msg.textContent = e.message;
+  }
+};
+
+load();
+</script>
+</body></html>

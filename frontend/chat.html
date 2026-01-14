@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-br"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chat - CRM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="container">
+  <div id="nav"></div>
+
+  <div class="card">
+    <div class="row">
+      <h2>Chat do Lead</h2>
+      <span class="small" id="cid"></span>
+    </div>
+
+    <div class="card" id="msgs" style="max-height:55vh; overflow:auto;"></div>
+
+    <div class="grid">
+      <div>
+        <label>Prévia IA (não envia WhatsApp)</label>
+        <input class="input" id="text" placeholder="Digite uma mensagem..." />
+      </div>
+      <div>
+        <label>Telefone (opcional)</label>
+        <input class="input" id="phone" placeholder="55..." />
+      </div>
+    </div>
+    <div style="margin-top:12px" class="row">
+      <button class="btn" id="preview">Gerar resposta da IA</button>
+      <span class="small" id="out"></span>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+requireAuth();
+document.getElementById("nav").innerHTML = navHtml();
+
+const params = new URLSearchParams(location.search);
+const contact_id = params.get("contact_id");
+document.getElementById("cid").textContent = contact_id ? ("Contato #" + contact_id) : "";
+
+async function loadMsgs(){
+  if(!contact_id) return;
+  const msgs = await api(`/api/contacts/${contact_id}/messages`);
+  const box = document.getElementById("msgs");
+  box.innerHTML = "";
+  msgs.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `<div class="badge">${m.direction === "in" ? "Cliente" : "Imobiliária"}</div>
+                     <div style="margin-top:6px">${m.content}</div>
+                     <div class="small" style="margin-top:6px">${m.created_at}</div>`;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+loadMsgs();
+
+document.getElementById("preview").onclick = async () => {
+  const text = document.getElementById("text").value;
+  const phone = document.getElementById("phone").value;
+  const out = document.getElementById("out");
+  out.textContent = "Gerando...";
+  try{
+    const r = await api("/api/ai/preview","POST",{text, phone});
+    out.textContent = r.reply;
+  }catch(e){
+    out.textContent = e.message;
+  }
+};
+</script>
+</body></html>

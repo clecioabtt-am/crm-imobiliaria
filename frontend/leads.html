@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-br"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Leads - CRM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="container">
+  <div id="nav"></div>
+
+  <div class="card">
+    <div class="row">
+      <h2>Leads</h2>
+      <span class="small">CRUD básico</span>
+    </div>
+
+    <div class="card">
+      <h3>Novo</h3>
+      <div class="grid">
+
+      <div>
+        <label>Nome</label>
+        <input class="input" id="name" type="text" placeholder="Ex: João"/>
+      </div>
+
+
+      <div>
+        <label>Telefone (E.164)</label>
+        <input class="input" id="phone" type="text" placeholder="Ex: 5592986..."/>
+      </div>
+
+
+      <div>
+        <label>Etapa</label>
+        <input class="input" id="stage" type="text" placeholder="Novo lead"/>
+      </div>
+
+
+      <div>
+        <label>Origem</label>
+        <input class="input" id="source" type="text" placeholder="WhatsApp"/>
+      </div>
+
+
+      <div>
+        <label>Notas</label>
+        <input class="input" id="notes" type="text" placeholder=""/>
+      </div>
+
+      </div>
+      <div style="margin-top:12px" class="row">
+        <button class="btn" id="create">Salvar</button>
+        <span class="small" id="msg"></span>
+      </div>
+    </div>
+
+    <table class="table" id="tbl">
+      <thead><tr><th>ID</th><th>Resumo</th><th class="small">Ações</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+requireAuth();
+document.getElementById("nav").innerHTML = navHtml();
+
+async function load(){
+  const rows = await api("/api/contacts");
+  const tb = document.querySelector("#tbl tbody");
+  tb.innerHTML = "";
+  rows.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `${r.id}</td><td><b>${r.name||"(sem nome)"}</b><div class="small">${r.phone} • ${r.stage}</div></td><td><a href="chat.html?contact_id=${r.id}">Abrir chat</a></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+document.getElementById("create").onclick = async () => {
+  const msg = document.getElementById("msg");
+  msg.textContent = "Salvando...";
+  try {
+    const payload = ({
+      name: document.getElementById("name").value || null,
+      phone: document.getElementById("phone").value,
+      stage: document.getElementById("stage").value || "Novo lead",
+      source: document.getElementById("source").value || "WhatsApp",
+      notes: document.getElementById("notes").value || ""
+    });
+    await api("/api/contacts","POST", payload);
+    msg.textContent = "Salvo!";
+    await load();
+  } catch(e) {
+    msg.textContent = e.message;
+  }
+};
+
+load();
+</script>
+</body></html>

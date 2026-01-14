@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-br"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Login - CRM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h2>Login</h2>
+    <p class="small">Use o admin seed do .env na primeira vez.</p>
+    <div class="grid">
+      <div>
+        <label>Email</label>
+        <input class="input" id="email" placeholder="admin@imobiliaria.com" />
+      </div>
+      <div>
+        <label>Senha</label>
+        <input class="input" id="password" type="password" placeholder="Admin@123" />
+      </div>
+    </div>
+    <div style="margin-top:12px" class="row">
+      <button class="btn" id="btn">Entrar</button>
+      <span id="msg" class="small"></span>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+document.getElementById("btn").onclick = async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const msg = document.getElementById("msg");
+  msg.textContent = "Entrando...";
+  try{
+    const r = await api("/api/auth/login","POST",{email,password});
+    setToken(r.access_token);
+    window.location = "dashboard.html";
+  }catch(e){
+    msg.textContent = e.message;
+  }
+};
+</script>
+</body></html>
